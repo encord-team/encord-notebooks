@@ -375,3 +375,4 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/vim,osx,python,windows,pycharm,jupyternotebooks
 
+/local-tests/
