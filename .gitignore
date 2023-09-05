@@ -379,15 +379,14 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/vim,osx,python,windows,pycharm,jupyternotebooks
 
 .gitignore
-notebooks/encord_learning_hub_advanced_projects.jpeg:Zone.Identifier
-notebooks/encord_learning_hub_encord_annotate.jpeg:Zone.Identifier
-notebooks/encord_learning_hub_papers explained.jpeg:Zone.Identifier
+*.Identifier
+
 /local-tests/
-notebooks/ssh_key.pub
+
+*.pub
+
 notebooks/download-sandbox-dataset.ipynb
 notebooks/building-a-custom-metric-function_hold.ipynb
 notebooks/getting-started-with-encord-projects.ipynb
 notebooks/ssh_key
 notebooks/getting-started-with-coco-project.ipynb
-
-.gitignore
