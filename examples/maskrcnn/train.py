@@ -139,8 +139,8 @@ def main(params):
             if params.logging.wandb_enabled:
                 train_map_logs = {}
                 if params.logging.log_train_map:
-                    train_map_logs = {f"train/{k}": v.item() for k, v in train_map.items() if k != 'classes' }
-                val_map_logs = {f"val/{k}": v.item() for k, v in val_map.items() if k != 'classes'}
+                    train_map_logs = {f"train/{k}": v.item() for k, v in train_map.items() if k != "classes"}
+                val_map_logs = {f"val/{k}": v.item() for k, v in val_map.items() if k != "classes"}
                 wandb.log(
                     {
                         "epoch": epoch + 1,
