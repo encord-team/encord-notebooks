@@ -88,7 +88,7 @@ To get started with the notebooks locally, follow these steps:
 ```bash
 git clone https://github.com/encord-team/encord-notebooks.git
 
-cd notebooks
+cd local-notebooks
 ```
 2. Create a python virtual environment and activate it:
 
