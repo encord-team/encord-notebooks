@@ -62,6 +62,7 @@ def main(params):
     early_stop_counter = 0
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    print(f"Running on {device}...")
 
     dataset_train = EncordMaskRCNNDataset(
         img_folder=params.data.train_data_folder,
