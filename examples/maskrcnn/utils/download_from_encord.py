@@ -6,11 +6,15 @@ import requests
 from encord import EncordUserClient
 from encord.constants.enums import DataType
 from tqdm.contrib.concurrent import thread_map
-
+from tqdm import tqdm
 
 def download_data_from_encord_project(project_hash: str, ssh_key: str, target_folder: str):
     def download_image_from_data_unit(data_unit: dict, target_path: Path):
-        file_name = data_unit["data_hash"] + Path(data_unit["data_title"]).suffix
+        if Path(data_unit["data_title"]).suffix:
+            file_name = data_unit["data_hash"] + Path(data_unit["data_title"]).suffix
+        else:
+            file_name = data_unit["data_hash"] + '.'+data_unit["data_title"]
+
         image_target_path = target_path / file_name
 
         response = requests.get(data_unit["data_link"], stream=True)
@@ -52,7 +56,7 @@ def download_data_from_encord_project(project_hash: str, ssh_key: str, target_fo
 
     all_image_data_units = []
     all_video_data_units = []
-    for label in label_rows:
+    for label in tqdm(label_rows):
         fetched_label = project.get_label_row(label.label_hash)
         data_type = fetched_label["data_type"]
 
