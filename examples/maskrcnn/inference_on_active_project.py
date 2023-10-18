@@ -45,12 +45,10 @@ project_ontology = active_project.ontology.to_dict()
 model.eval()
 with torch.no_grad():
     for counter, du in enumerate(tqdm(active_project.iter_frames())):
-        if counter == 20:
-            break
 
         image = du.image
         img, _ = img_transformer(image, None)
-        prediction = model([img.to(device)])
+        prediction = model([img[:3,:,:].to(device)])
 
         scores_filter = prediction[0]["scores"] > params.inference.confidence_threshold
         masks = prediction[0]["masks"][scores_filter].detach().cpu().numpy()
