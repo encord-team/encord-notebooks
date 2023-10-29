@@ -139,4 +139,3 @@ dependencies:
     - wcwidth==0.2.6
     - websockets==11.0.3
     - wrapt==1.15.0
-prefix: /opt/anaconda3/envs/encord-maskrcnn
