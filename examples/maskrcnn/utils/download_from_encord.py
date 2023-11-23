@@ -5,15 +5,16 @@ from pathlib import Path
 import requests
 from encord import EncordUserClient
 from encord.constants.enums import DataType
-from tqdm.contrib.concurrent import thread_map
 from tqdm import tqdm
+from tqdm.contrib.concurrent import thread_map
+
 
 def download_data_from_encord_project(project_hash: str, ssh_key: str, target_folder: str):
     def download_image_from_data_unit(data_unit: dict, target_path: Path):
         if Path(data_unit["data_title"]).suffix:
             file_name = data_unit["data_hash"] + Path(data_unit["data_title"]).suffix
         else:
-            file_name = data_unit["data_hash"] + '.'+data_unit["data_title"]
+            file_name = data_unit["data_hash"] + "." + data_unit["data_title"]
 
         image_target_path = target_path / file_name
 

@@ -124,12 +124,12 @@ def main(params):
     train_map_metric = MeanAveragePrecision(iou_type="segm").to(device)
     val_map_metric = MeanAveragePrecision(iou_type="segm").to(device)
 
-    for epoch in range(params.train.max_epoch):
+    for epoch in range(1, params.train.max_epoch+1):
         last_epoch = epoch
         print(f"Epoch: {epoch}")
         train_one_epoch(model, device, data_loader_train, optimizer, log_freq=10)
 
-        if epoch % params.logging.performance_tracking_interval == 0:
+        if epoch == 1 or (epoch % params.logging.performance_tracking_interval == 0):
             if params.logging.log_train_map:
                 train_map = evaluate(model, device, data_loader_train, train_map_metric)
             val_map = evaluate(model, device, data_loader_validation, val_map_metric)
@@ -144,7 +144,7 @@ def main(params):
                 val_map_logs = {f"val/{k}": v.item() for k, v in val_map.items() if k != "classes"}
                 wandb.log(
                     {
-                        "epoch": epoch + 1,
+                        "epoch": epoch ,
                         "lr": optimizer.param_groups[0]["lr"],
                         **train_map_logs,
                         **val_map_logs,
@@ -165,7 +165,7 @@ def main(params):
                         os.path.join(wandb.run.dir, "best_maskrcnn.ckpt"),
                     )
                 else:
-                    torch.save(model.state_dict(), "weights/best_maskrcnn.ckpt")
+                    torch.save(model.state_dict(), "best_maskrcnn.ckpt")
             else:
                 early_stop_counter += 1
 
@@ -179,7 +179,7 @@ def main(params):
             os.path.join(wandb.run.dir, f"epoch_{last_epoch}_maskrcnn.ckpt"),
         )
     else:
-        torch.save(model.state_dict(), f"weights/epoch_{last_epoch}_maskrcnn.ckpt")
+        torch.save(model.state_dict(), f"epoch_{last_epoch}_maskrcnn.ckpt")
 
     print("Training finished")
 

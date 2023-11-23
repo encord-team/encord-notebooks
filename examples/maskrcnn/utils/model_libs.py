@@ -4,10 +4,12 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
 
-def get_model_instance_segmentation(num_classes, fine_tuning=False, box_nms_thresh=0.5):
+def get_model_instance_segmentation(num_classes, fine_tuning=False, box_nms_thresh=0.5, box_detections_per_img=30):
     # load an instance segmentation model pre-trained on COCO
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(
-        weights=MaskRCNN_ResNet50_FPN_Weights.DEFAULT, box_nms_thresh=box_nms_thresh
+        weights=MaskRCNN_ResNet50_FPN_Weights.DEFAULT,
+        box_nms_thresh=box_nms_thresh,
+        box_detections_per_img=box_detections_per_img,
     )
 
     # get number of input features for the classifier
