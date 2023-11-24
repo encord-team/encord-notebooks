@@ -125,7 +125,7 @@ def main(params):
     val_map_metric = MeanAveragePrecision(iou_type="segm").to(device)
 
     log_freq = 10 if params.logging.wandb_enabled else None
-    pbar = tqdm(range(params.train.max_epoch + 1), desc="Running epochs")
+    pbar = tqdm(range(1, params.train.max_epoch + 1), desc="Running epochs")
     for epoch in pbar:
         last_epoch = epoch
         train_one_epoch(model, device, data_loader_train, optimizer, log_freq=log_freq)
