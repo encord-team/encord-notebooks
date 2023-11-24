@@ -1,5 +1,5 @@
 import os
-
+from tqdm.auto import tqdm
 import torch
 import wandb
 from torch.optim import lr_scheduler
@@ -124,10 +124,11 @@ def main(params):
     train_map_metric = MeanAveragePrecision(iou_type="segm").to(device)
     val_map_metric = MeanAveragePrecision(iou_type="segm").to(device)
 
-    for epoch in range(1, params.train.max_epoch+1):
+    log_freq = 10 if params.logging.wandb_enabled else None
+    pbar = tqdm(range(params.train.max_epoch + 1), desc="Running epochs")
+    for epoch in pbar:
         last_epoch = epoch
-        print(f"Epoch: {epoch}")
-        train_one_epoch(model, device, data_loader_train, optimizer, log_freq=10)
+        train_one_epoch(model, device, data_loader_train, optimizer, log_freq=log_freq)
 
         if epoch == 1 or (epoch % params.logging.performance_tracking_interval == 0):
             if params.logging.log_train_map:
@@ -144,7 +145,7 @@ def main(params):
                 val_map_logs = {f"val/{k}": v.item() for k, v in val_map.items() if k != "classes"}
                 wandb.log(
                     {
-                        "epoch": epoch ,
+                        "epoch": epoch,
                         "lr": optimizer.param_groups[0]["lr"],
                         **train_map_logs,
                         **val_map_logs,
@@ -156,7 +157,7 @@ def main(params):
             if val_map_average > best_map * (1 + 0.0001):
                 early_stop_counter = 0
                 best_map = val_map_average
-                print("overwriting the best model!")
+                pbar.set_postfix_str(f"Best model so far in epoch {epoch}")
 
                 if params.logging.wandb_enabled:
                     wandb.run.summary["best map"] = best_map
