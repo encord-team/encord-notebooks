@@ -1,5 +1,4 @@
 import os
-import shutil
 from pathlib import Path
 
 import requests
@@ -9,14 +8,18 @@ from tqdm import tqdm
 from tqdm.contrib.concurrent import thread_map
 
 
-def download_data_from_encord_project(project_hash: str, ssh_key: str, target_folder: str):
-    def download_image_from_data_unit(data_unit: dict, target_path: Path):
-        if Path(data_unit["data_title"]).suffix:
-            file_name = data_unit["data_hash"] + Path(data_unit["data_title"]).suffix
-        else:
-            file_name = data_unit["data_hash"] + "." + data_unit["data_title"]
+def get_image_path(data_unit_hash: str, data_unit_title: str, data_folder: Path):
+    if Path(data_unit_title).suffix:
+        file_name = data_unit_hash + Path(data_unit_title).suffix
+    else:
+        file_name = data_unit_hash + "." + data_unit_title
+    image_path = data_folder / "images" / file_name
+    return image_path
 
-        image_target_path = target_path / file_name
+
+def download_data_from_encord_project(project_hash: str, ssh_key: str, target_folder: str):
+    def download_image_from_data_unit(data_unit: dict, data_folder: Path):
+        image_target_path = get_image_path(data_unit["data_hash"], data_unit["data_title"], data_folder)
 
         response = requests.get(data_unit["data_link"], stream=True)
         response.raise_for_status()
@@ -69,10 +72,9 @@ def download_data_from_encord_project(project_hash: str, ssh_key: str, target_fo
                 all_video_data_units.append(data_unit)
 
     print("Downloading images...")
-    images_target_path = target_path / "images"
-    images_target_path.mkdir()
+    (target_path / "images").mkdir()
     thread_map(
-        lambda data_unit: download_image_from_data_unit(data_unit, images_target_path),
+        lambda data_unit: download_image_from_data_unit(data_unit, target_path),
         all_image_data_units,
         max_workers=os.cpu_count(),
     )
