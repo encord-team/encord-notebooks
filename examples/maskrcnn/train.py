@@ -1,9 +1,10 @@
 import os
-from tqdm.auto import tqdm
+
 import torch
 import wandb
 from torch.optim import lr_scheduler
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+from tqdm.auto import tqdm
 from utils.encord_dataset import EncordMaskRCNNDataset
 from utils.model_libs import get_model_instance_segmentation
 from utils.provider import (

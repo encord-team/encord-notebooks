@@ -1,7 +1,2 @@
-[tool.black]
-line-length = 120
-target-version = ['py39']
-include = '.*\/.*\.i?py(nb)?$'
-
-[tool.isort]
-profile = "black"
+[tool.ruff.lint]
+extend-select = ["PL", "I"]
