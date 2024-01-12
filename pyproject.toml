@@ -1,0 +1,2 @@
+[tool.ruff.lint]
+extend-select = ["PL", "I"]

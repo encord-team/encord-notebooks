@@ -391,6 +391,8 @@ notebooks/building-a-custom-metric-function_hold.ipynb
 notebooks/getting-started-with-encord-projects.ipynb
 notebooks/ssh_key
 notebooks/getting-started-with-coco-project.ipynb
+examples/maskrcnn/inference_on_active_project_private.py
+
 
 deprecated/*
 
