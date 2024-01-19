@@ -1,8 +1,5 @@
 import sys
 from pathlib import Path
-
-sys.path.append(Path(__file__).parent.parent.as_posix())
-
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
@@ -12,6 +9,8 @@ from torchvision import ops
 from torchvision.transforms import InterpolationMode
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
+
+sys.path.append(Path(__file__).parent.parent.as_posix())
 
 
 def _flip_coco_person_keypoints(kps, width):
@@ -102,7 +101,9 @@ class RandomIoUCrop(nn.Module):
 
         if isinstance(image, torch.Tensor):
             if image.ndimension() not in {2, 3}:
-                raise ValueError(f"image should be 2/3 dimensional. Got {image.ndimension()} dimensions.")
+                raise ValueError(
+                    f"image should be 2/3 dimensional. Got {image.ndimension()} dimensions."
+                )
             elif image.ndimension() == 2:
                 image = image.unsqueeze(0)
 
@@ -112,7 +113,9 @@ class RandomIoUCrop(nn.Module):
             # sample an option
             idx = int(torch.randint(low=0, high=len(self.options), size=(1,)))
             min_jaccard_overlap = self.options[idx]
-            if min_jaccard_overlap >= 1.0:  # a value larger than 1 encodes the leave as-is option
+            if (
+                min_jaccard_overlap >= 1.0
+            ):  # a value larger than 1 encodes the leave as-is option
                 return image, target
 
             for _ in range(self.trials):
@@ -136,7 +139,9 @@ class RandomIoUCrop(nn.Module):
                 # check for any valid boxes with centers within the crop area
                 cx = 0.5 * (target["boxes"][:, 0] + target["boxes"][:, 2])
                 cy = 0.5 * (target["boxes"][:, 1] + target["boxes"][:, 3])
-                is_within_crop_area = (left < cx) & (cx < right) & (top < cy) & (cy < bottom)
+                is_within_crop_area = (
+                    (left < cx) & (cx < right) & (top < cy) & (cy < bottom)
+                )
                 if not is_within_crop_area.any():
                     continue
 
@@ -192,7 +197,9 @@ class RandomZoomOut(nn.Module):
     ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
         if isinstance(image, torch.Tensor):
             if image.ndimension() not in {2, 3}:
-                raise ValueError(f"image should be 2/3 dimensional. Got {image.ndimension()} dimensions.")
+                raise ValueError(
+                    f"image should be 2/3 dimensional. Got {image.ndimension()} dimensions."
+                )
             elif image.ndimension() == 2:
                 image = image.unsqueeze(0)
 
@@ -201,7 +208,9 @@ class RandomZoomOut(nn.Module):
 
         _, orig_h, orig_w = F.get_dimensions(image)
 
-        r = self.side_range[0] + torch.rand(1) * (self.side_range[1] - self.side_range[0])
+        r = self.side_range[0] + torch.rand(1) * (
+            self.side_range[1] - self.side_range[0]
+        )
         canvas_width = int(orig_w * r)
         canvas_height = int(orig_h * r)
 
@@ -219,10 +228,12 @@ class RandomZoomOut(nn.Module):
         image = F.pad(image, [left, top, right, bottom], fill=fill)
         if isinstance(image, torch.Tensor):
             # PyTorch's pad supports only integers on fill. So we need to overwrite the colour
-            v = torch.tensor(self.fill, device=image.device, dtype=image.dtype).view(-1, 1, 1)
-            image[..., :top, :] = image[..., :, :left] = image[..., (top + orig_h) :, :] = image[
-                ..., :, (left + orig_w) :
-            ] = v
+            v = torch.tensor(self.fill, device=image.device, dtype=image.dtype).view(
+                -1, 1, 1
+            )
+            image[..., :top, :] = image[..., :, :left] = image[
+                ..., (top + orig_h) :, :
+            ] = image[..., :, (left + orig_w) :] = v
 
         if target is not None:
             target["boxes"][:, 0::2] += left
@@ -252,7 +263,9 @@ class RandomPhotometricDistort(nn.Module):
     ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
         if isinstance(image, torch.Tensor):
             if image.ndimension() not in {2, 3}:
-                raise ValueError(f"image should be 2/3 dimensional. Got {image.ndimension()} dimensions.")
+                raise ValueError(
+                    f"image should be 2/3 dimensional. Got {image.ndimension()} dimensions."
+                )
             elif image.ndimension() == 2:
                 image = image.unsqueeze(0)
 
@@ -320,18 +333,27 @@ class ScaleJitter(nn.Module):
     ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
         if isinstance(image, torch.Tensor):
             if image.ndimension() not in {2, 3}:
-                raise ValueError(f"image should be 2/3 dimensional. Got {image.ndimension()} dimensions.")
+                raise ValueError(
+                    f"image should be 2/3 dimensional. Got {image.ndimension()} dimensions."
+                )
             elif image.ndimension() == 2:
                 image = image.unsqueeze(0)
 
         _, orig_height, orig_width = F.get_dimensions(image)
 
-        scale = self.scale_range[0] + torch.rand(1) * (self.scale_range[1] - self.scale_range[0])
-        r = min(self.target_size[1] / orig_height, self.target_size[0] / orig_width) * scale
+        scale = self.scale_range[0] + torch.rand(1) * (
+            self.scale_range[1] - self.scale_range[0]
+        )
+        r = (
+            min(self.target_size[1] / orig_height, self.target_size[0] / orig_width)
+            * scale
+        )
         new_width = int(orig_width * r)
         new_height = int(orig_height * r)
 
-        image = F.resize(image, [new_height, new_width], interpolation=self.interpolation)
+        image = F.resize(
+            image, [new_height, new_width], interpolation=self.interpolation
+        )
 
         if target is not None:
             target["boxes"][:, 0::2] *= new_width / orig_width
@@ -349,10 +371,16 @@ class ScaleJitter(nn.Module):
 class FixedSizeCrop(nn.Module):
     def __init__(self, size, fill=0, padding_mode="constant"):
         super().__init__()
-        size = tuple(T._setup_size(size, error_msg="Please provide only two dimensions (h, w) for size."))
+        size = tuple(
+            T._setup_size(
+                size, error_msg="Please provide only two dimensions (h, w) for size."
+            )
+        )
         self.crop_height = size[0]
         self.crop_width = size[1]
-        self.fill = fill  # TODO: Fill is currently respected only on PIL. Apply tensor patch.
+        self.fill = (
+            fill  # TODO: Fill is currently respected only on PIL. Apply tensor patch.
+        )
         self.padding_mode = padding_mode
 
     def _pad(self, img, target, padding):
@@ -394,7 +422,9 @@ class FixedSizeCrop(nn.Module):
             target["boxes"] = boxes[is_valid]
             target["labels"] = target["labels"][is_valid]
             if "masks" in target:
-                target["masks"] = F.crop(target["masks"][is_valid], top, left, height, width)
+                target["masks"] = F.crop(
+                    target["masks"][is_valid], top, left, height, width
+                )
 
         return img, target
 
@@ -447,7 +477,9 @@ class RandomShortestSize(nn.Module):
         new_width = int(orig_width * r)
         new_height = int(orig_height * r)
 
-        image = F.resize(image, [new_height, new_width], interpolation=self.interpolation)
+        image = F.resize(
+            image, [new_height, new_width], interpolation=self.interpolation
+        )
 
         if target is not None:
             target["boxes"][:, 0::2] *= new_width / orig_width
@@ -470,7 +502,6 @@ def _copy_paste(
     blending: bool = True,
     resize_interpolation: F.InterpolationMode = F.InterpolationMode.BILINEAR,
 ) -> Tuple[torch.Tensor, Dict[str, Tensor]]:
-
     # Random paste targets selection:
     num_masks = len(paste_target["masks"])
 
@@ -480,7 +511,9 @@ def _copy_paste(
         return image, target
 
     # We have to please torch script by explicitly specifying dtype as torch.long
-    random_selection = torch.randint(0, num_masks, (num_masks,), device=paste_image.device)
+    random_selection = torch.randint(
+        0, num_masks, (num_masks,), device=paste_image.device
+    )
     random_selection = torch.unique(random_selection).to(torch.long)
 
     paste_masks = paste_target["masks"][random_selection]
@@ -496,9 +529,13 @@ def _copy_paste(
     size2 = paste_image.shape[-2:]
     if size1 != size2:
         paste_image = F.resize(paste_image, size1, interpolation=resize_interpolation)
-        paste_masks = F.resize(paste_masks, size1, interpolation=F.InterpolationMode.NEAREST)
+        paste_masks = F.resize(
+            paste_masks, size1, interpolation=F.InterpolationMode.NEAREST
+        )
         # resize bboxes:
-        ratios = torch.tensor((size1[1] / size2[1], size1[0] / size2[0]), device=paste_boxes.device)
+        ratios = torch.tensor(
+            (size1[1] / size2[1], size1[0] / size2[0]), device=paste_boxes.device
+        )
         paste_boxes = paste_boxes.view(-1, 2, 2).mul(ratios).view(paste_boxes.shape)
 
     paste_alpha_mask = paste_masks.sum(dim=0) > 0
@@ -564,7 +601,9 @@ def _copy_paste(
 
 
 class SimpleCopyPaste(torch.nn.Module):
-    def __init__(self, blending=True, resize_interpolation=F.InterpolationMode.BILINEAR):
+    def __init__(
+        self, blending=True, resize_interpolation=F.InterpolationMode.BILINEAR
+    ):
         super().__init__()
         self.resize_interpolation = resize_interpolation
         self.blending = blending
@@ -573,7 +612,8 @@ class SimpleCopyPaste(torch.nn.Module):
         self, images: List[torch.Tensor], targets: List[Dict[str, Tensor]]
     ) -> Tuple[List[torch.Tensor], List[Dict[str, Tensor]]]:
         torch._assert(
-            isinstance(images, (list, tuple)) and all([isinstance(v, torch.Tensor) for v in images]),
+            isinstance(images, (list, tuple))
+            and all([isinstance(v, torch.Tensor) for v in images]),
             "images should be a list of tensors",
         )
         torch._assert(
@@ -600,7 +640,9 @@ class SimpleCopyPaste(torch.nn.Module):
         output_images: List[torch.Tensor] = []
         output_targets: List[Dict[str, Tensor]] = []
 
-        for image, target, paste_image, paste_target in zip(images, targets, images_rolled, targets_rolled):
+        for image, target, paste_image, paste_target in zip(
+            images, targets, images_rolled, targets_rolled
+        ):
             output_image, output_data = _copy_paste(
                 image,
                 target,

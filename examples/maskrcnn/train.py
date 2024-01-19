@@ -48,6 +48,18 @@ def evaluate(model, device, data_loader, map_metric):
         predictions = threshold_masks(predictions)
         targets = threshold_masks(targets)
 
+        for target in targets:
+            if target["masks"].size(0) != target["labels"].size(0):
+                print("Shape mismatch!")
+                continue
+
+        for prediction in predictions:
+            if prediction["masks"].size(0) != prediction["scores"].size(
+                0
+            ) or prediction["masks"].size(0) != prediction["labels"].size(0):
+                print("Shape mismatch!")
+                continue
+
         map_metric.update(preds=predictions, target=targets)
 
     map_metric_result = map_metric.compute()
@@ -142,8 +154,14 @@ def main(params):
             if params.logging.wandb_enabled:
                 train_map_logs = {}
                 if params.logging.log_train_map:
-                    train_map_logs = {f"train/{k}": v.item() for k, v in train_map.items() if k != "classes"}
-                val_map_logs = {f"val/{k}": v.item() for k, v in val_map.items() if k != "classes"}
+                    train_map_logs = {
+                        f"train/{k}": v.item()
+                        for k, v in train_map.items()
+                        if k != "classes"
+                    }
+                val_map_logs = {
+                    f"val/{k}": v.item() for k, v in val_map.items() if k != "classes"
+                }
                 wandb.log(
                     {
                         "epoch": epoch,
@@ -187,11 +205,12 @@ def main(params):
 
 
 if __name__ == "__main__":
-
     params = get_config("config.ini")
     if params.logging.wandb_enabled:
         wandb.init(project=params.logging.wandb_project, save_code=True)
-        wandb.run.name = os.path.basename(__file__)[:-3] + "_" + wandb.run.name.split("-")[2]
+        wandb.run.name = (
+            os.path.basename(__file__)[:-3] + "_" + wandb.run.name.split("-")[2]
+        )
         wandb.run.save()
 
         config = wandb.config

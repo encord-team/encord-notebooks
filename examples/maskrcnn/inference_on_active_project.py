@@ -32,7 +32,9 @@ path = Path(params.inference.ea_database)
 engine = get_engine(path)
 
 model = get_model_instance_segmentation(len(COCO_categories["categories"]) + 1)
-model.load_state_dict(torch.load(params.inference.model_checkpoint_path, map_location=device))
+model.load_state_dict(
+    torch.load(params.inference.model_checkpoint_path, map_location=device)
+)
 model.to(device)
 
 img_transformer = get_transform(train=False)
@@ -44,7 +46,6 @@ project_ontology = active_project.ontology.to_dict()
 model.eval()
 with torch.no_grad():
     for counter, du in enumerate(tqdm(active_project.iter_frames())):
-
         image = du.image
         img, _ = img_transformer(image, None)
         prediction = model([img[:3, :, :].to(device)])
@@ -55,22 +56,38 @@ with torch.no_grad():
         scores = prediction[0]["scores"][scores_filter].detach().cpu().numpy()
 
         for ma, la, sc in zip(masks, labels, scores):
-            contours, _ = cv2.findContours((ma[0] > 0.5).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+            contours, _ = cv2.findContours(
+                (ma[0] > 0.5).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
+            )
 
             for contour in contours:
-                if project_ontology["objects"][la.item() - 1]["shape"] == "bounding_box":
+                if (
+                    project_ontology["objects"][la.item() - 1]["shape"]
+                    == "bounding_box"
+                ):
                     (x, y, w, h) = cv2.boundingRect(contour)
                     obj = ObjectDetection(
                         format=Format.BOUNDING_BOX,
-                        data=BoundingBox(x=x / ma.shape[2], y=y / ma.shape[1], w=w / ma.shape[2], h=h / ma.shape[1]),
-                        feature_hash=project_ontology["objects"][la.item() - 1]["featureNodeHash"],
+                        data=BoundingBox(
+                            x=x / ma.shape[2],
+                            y=y / ma.shape[1],
+                            w=w / ma.shape[2],
+                            h=h / ma.shape[1],
+                        ),
+                        feature_hash=project_ontology["objects"][la.item() - 1][
+                            "featureNodeHash"
+                        ],
                     )
                 elif project_ontology["objects"][la.item() - 1]["shape"] == "polygon":
-                    contour = contour.reshape(contour.shape[0], 2) / np.array([[ma.shape[2], ma.shape[1]]])
+                    contour = contour.reshape(contour.shape[0], 2) / np.array(
+                        [[ma.shape[2], ma.shape[1]]]
+                    )
                     obj = ObjectDetection(
                         format=Format.POLYGON,
                         data=contour,
-                        feature_hash=project_ontology["objects"][la.item() - 1]["featureNodeHash"],
+                        feature_hash=project_ontology["objects"][la.item() - 1][
+                            "featureNodeHash"
+                        ],
                     )
                 else:
                     continue
@@ -84,5 +101,9 @@ with torch.no_grad():
                 predictions_to_store.append(prediction)
 
 
-with open(Path(params.encord.data_folder).parent / f"predictions_{params.inference.wandb_id}.pkl", "wb") as f:
+with open(
+    Path(params.encord.data_folder).parent
+    / f"predictions_{params.inference.wandb_id}.pkl",
+    "wb",
+) as f:
     pickle.dump(predictions_to_store, f)
