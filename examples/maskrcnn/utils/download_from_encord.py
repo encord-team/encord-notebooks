@@ -17,9 +17,13 @@ def get_image_path(data_unit_hash: str, data_unit_title: str, data_folder: Path)
     return image_path
 
 
-def download_data_from_encord_project(project_hash: str, ssh_key: str, target_folder: str):
+def download_data_from_encord_project(
+    project_hash: str, ssh_key: str, target_folder: str
+):
     def download_image_from_data_unit(data_unit: dict, data_folder: Path):
-        image_target_path = get_image_path(data_unit["data_hash"], data_unit["data_title"], data_folder)
+        image_target_path = get_image_path(
+            data_unit["data_hash"], data_unit["data_title"], data_folder
+        )
 
         response = requests.get(data_unit["data_link"], stream=True)
         response.raise_for_status()
@@ -54,7 +58,9 @@ def download_data_from_encord_project(project_hash: str, ssh_key: str, target_fo
 
     target_path.mkdir(parents=True, exist_ok=True)
 
-    user_client = EncordUserClient.create_with_ssh_private_key(Path(ssh_key).read_text())
+    user_client = EncordUserClient.create_with_ssh_private_key(
+        Path(ssh_key).read_text()
+    )
     project = user_client.get_project(project_hash)
     label_rows = project.list_label_rows_v2()
 
@@ -84,7 +90,9 @@ def download_data_from_encord_project(project_hash: str, ssh_key: str, target_fo
     videos_target_path = target_path / "videos"
     videos_target_path.mkdir()
     thread_map(
-        lambda data_unit: download_video_frames_from_data_unit(data_unit, videos_target_path),
+        lambda data_unit: download_video_frames_from_data_unit(
+            data_unit, videos_target_path
+        ),
         all_video_data_units,
         max_workers=os.cpu_count(),
     )

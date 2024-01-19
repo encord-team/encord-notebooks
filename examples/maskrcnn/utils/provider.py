@@ -1,10 +1,6 @@
-import sys
-from pathlib import Path
-
-sys.path.append(Path(__file__).parent.as_posix())
-
 import configparser
 import random
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List
@@ -14,6 +10,8 @@ import torch
 import torchvision
 import transforms as T
 from pycocotools import mask as coco_mask
+
+sys.path.append(Path(__file__).parent.as_posix())
 
 
 def get_config(path: str):

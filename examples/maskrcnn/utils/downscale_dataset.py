@@ -27,14 +27,24 @@ def resize_images(root_folder: Path, target_width: int, target_height: int):
     ):
         if lr_item.is_dir():
             data_units = lr_item / "images"
-            target_data_units = target_data_path / lr_item.as_posix().split("/")[-1] / "images"
+            target_data_units = (
+                target_data_path / lr_item.as_posix().split("/")[-1] / "images"
+            )
             target_data_units.mkdir(parents=True)
             for item in data_units.glob("*.*"):
-                if item.as_posix().endswith((".png", ".jpg", ".jpeg", "tiff", ".tif", ".bmp", ".gif")):
-                    target_file_path = target_data_path / "/".join(item.as_posix().split("/")[-3:])
+                if item.as_posix().endswith(
+                    (".png", ".jpg", ".jpeg", "tiff", ".tif", ".bmp", ".gif")
+                ):
+                    target_file_path = target_data_path / "/".join(
+                        item.as_posix().split("/")[-3:]
+                    )
                     try:
                         img = cv2.imread(item.as_posix())
-                        img_resized = cv2.resize(img, (target_width, target_height), interpolation=cv2.INTER_AREA)
+                        img_resized = cv2.resize(
+                            img,
+                            (target_width, target_height),
+                            interpolation=cv2.INTER_AREA,
+                        )
                     except Exception:
                         print(f"Corrupted file: {item.as_posix}")
                         continue
@@ -63,13 +73,21 @@ def resize_coco_annotations(
         desc="Resizing image info",
         total=len(target_coco_annotation["images"]),
     ):
-        image["file_name"] = "/".join((images_folder_name, image["file_name"].split("/", 1)[1]))
+        image["file_name"] = "/".join(
+            (images_folder_name, image["file_name"].split("/", 1)[1])
+        )
         image["width"] = target_width
         image["height"] = target_height
 
-    for annotation in tqdm(target_coco_annotation["annotations"], desc="Resizing annotations"):
-        width_scaling = target_width / coco_annotation["images"][annotation["image_id"]]["width"]
-        height_scaling = target_height / coco_annotation["images"][annotation["image_id"]]["height"]
+    for annotation in tqdm(
+        target_coco_annotation["annotations"], desc="Resizing annotations"
+    ):
+        width_scaling = (
+            target_width / coco_annotation["images"][annotation["image_id"]]["width"]
+        )
+        height_scaling = (
+            target_height / coco_annotation["images"][annotation["image_id"]]["height"]
+        )
 
         annotation["area"] = target_width * target_height
         annotation["bbox"] = [
